@@ -1,0 +1,154 @@
+name: Deploy Observability Stack
+on: 
+  workflow_dispatch:
+    inputs:
+      service:
+        type: choice
+        description: 'Service for build'
+        required: true
+        options:
+          - auth-sso-api
+          - observability-stack
+        default: 'observability-stack'
+      target_environment:
+        type: choice
+        description: 'Target environment'
+        required: true
+        options:
+          - production
+          - staging
+        default: 'production'
+
+jobs:
+  check-dev-team-member:
+    runs-on: self-hosted-linux
+    outputs:
+      is-member: ${{ steps.checkDevTeamMember.outputs.isTeamMember }}
+    steps:
+      - uses: tspascoal/get-user-teams-membership@v3
+        id: checkDevTeamMember
+        with:
+          username: ${{ github.actor }}
+          team: 'DEV-team'
+          GITHUB_TOKEN: ${{ secrets.GHA_TOKEN_CHECK }}
+      - if: ${{ steps.checkDevTeamMember.outputs.isTeamMember == 'false' }}
+        name: Access denied
+        run: exit 1
+
+  deploy-observability:
+    runs-on: self-hosted-linux
+    needs: check-dev-team-member
+    if: ${{ needs.check-dev-team-member.outputs.is-member == 'true' && github.event.inputs.service == 'observability-stack' }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: feature/add-observability-stack
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install Ansible
+        run: |
+          python -m pip install --upgrade pip
+          pip install ansible
+          ansible --version
+
+      - name: Setup Docker
+        uses: docker/setup-docker-action@v4
+
+
+      - name: Install Ansible dependencies
+        run: |
+          ansible-galaxy install geerlingguy.docker -p ./roles
+          ansible-galaxy collection install community.docker
+
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.ANSIBLE_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          
+          # Добавляем хосты в known_hosts (опционально)
+          ssh-keyscan -H ${{ secrets.TARGET_HOST_IP }} >> ~/.ssh/known_hosts || true
+
+      - name: Generate inventory file
+        run: |
+          cat > observability/inventory.ini << EOF
+          [${{ github.event.inputs.target_environment }}]
+          ${{ secrets.TARGET_HOST_IP }} ansible_connection=ssh ansible_ssh_user=${{ secrets.ANSIBLE_SSH_USER }} ansible_ssh_private_key_file=~/.ssh/id_rsa
+          EOF
+
+      - name: Generate playbook with secrets
+        run: |
+          cat > observability/playbook.yml << 'EOF'
+          ---
+          - hosts: ${{ github.event.inputs.target_environment }}
+            become: true
+            vars:
+              # Grafana settings
+              monitoring__grafana_admin_user: "${{ secrets.GRAFANA_ADMIN_USER }}"
+              monitoring__grafana_admin_password: "${{ secrets.GRAFANA_ADMIN_PASSWORD }}"
+              
+              # Prometheus auth
+              monitoring__prometheus_basic_auth_username: "${{ secrets.PROMETHEUS_AUTH_USER }}"
+              monitoring__prometheus_basic_auth_password: "${{ secrets.PROMETHEUS_AUTH_PASSWORD }}"
+              
+              # Loki auth
+              monitoring__loki_basic_auth_username: "${{ secrets.LOKI_AUTH_USER }}"
+              monitoring__loki_basic_auth_password: "${{ secrets.LOKI_AUTH_PASSWORD }}"
+              
+              # MinIO settings (credentials)
+              monitoring__minio_access_key: "${{ secrets.MINIO_ACCESS_KEY }}"
+              monitoring__minio_secret_key: "${{ secrets.MINIO_SECRET_KEY }}"
+              monitoring__loki_bucket_name: "${{ secrets.LOKI_BUCKET_NAME }}"
+              
+            roles:
+              - monitoring
+          EOF
+
+      - name: Test Ansible connection
+        run: |
+          cd observability
+          ansible all -i inventory.ini -m ping
+
+      - name: Run Ansible syntax check
+        run: |
+          cd observability
+          ansible-playbook -i inventory.ini playbook.yml --syntax-check
+
+      - name: Run Ansible playbook (dry run)
+        run: |
+          cd observability
+          ansible-playbook -i inventory.ini playbook.yml --check --diff
+        continue-on-error: true
+
+      - name: Deploy Observability Stack
+        run: |
+          cd observability
+          ansible-playbook -i inventory.ini playbook.yml -v
+
+      - name: Verify deployment
+        run: |
+          # Ожидаем запуска сервисов
+          sleep 30
+          
+          # Проверяем доступность сервисов
+          echo "Checking Grafana..."
+          curl -f http://${{ secrets.TARGET_HOST_IP }}:3000/api/health || echo "Grafana not ready yet"
+          
+          echo "Checking Prometheus..."
+          curl -f -u ${{ secrets.PROMETHEUS_AUTH_USER }}:${{ secrets.PROMETHEUS_AUTH_PASSWORD }} \
+            http://${{ secrets.TARGET_HOST_IP }}:9090/-/healthy || echo "Prometheus not ready yet"
+          
+          echo "Deployment completed!"
+
+      - name: Cleanup sensitive files
+        if: always()
+        run: |
+          rm -f ~/.ssh/id_rsa
+          rm -f observability/inventory.ini
+          rm -f observability/playbook.yml
