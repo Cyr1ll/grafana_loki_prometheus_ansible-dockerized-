@@ -1,0 +1,13 @@
+---
+- name: Create "{{ monitoring__os_user_group }}" group
+  group:
+    name: "{{ monitoring__os_user_group }}"
+    state: present
+
+- name: Create "{{ monitoring__os_user }}" user
+  user:
+    name: "{{ monitoring__os_user }}"
+    group: "{{ monitoring__os_user_group }}"
+    state: present
+    create_home: false
+    shell: "/usr/sbin/nologin"

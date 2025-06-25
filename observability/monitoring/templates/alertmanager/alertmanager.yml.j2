@@ -1,0 +1,26 @@
+global:
+  resolve_timeout: 1m
+
+route:
+  receiver: 'slack-notifications'
+
+{% raw %}
+receivers:
+- name: 'slack-notifications'
+  slack_configs:
+  - channel: '#prometheus-alerts'
+    send_resolved: false
+    title_link: '{{ define "slack.default.titlelink" }}{{ "" }}{{ end }}'
+    title: |-
+     [{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] {{ .CommonLabels.alertname }}
+    text: >-
+     {{ range .Alerts -}}
+     *Description:* {{ .Annotations.description }}
+
+     {{ if .Labels.severity }}*Severity:* `{{ .Labels.severity }}`{{ end }}
+
+     *Details:*
+       {{ range .Labels.SortedPairs }} • *{{ .Name }}:* `{{ .Value }}`
+       {{ end }}
+     {{ end }}
+{% endraw %}

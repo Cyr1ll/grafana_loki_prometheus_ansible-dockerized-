@@ -1,0 +1,6 @@
+dependencies: [
+  {
+    "name": "geerlingguy.docker",
+    "version": "7.4.7"
+  }
+]

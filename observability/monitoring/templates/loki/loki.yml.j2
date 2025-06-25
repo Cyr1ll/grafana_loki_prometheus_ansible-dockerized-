@@ -1,0 +1,40 @@
+auth_enabled: false
+
+server:
+  http_listen_port: {{ monitoring__loki_port }}
+
+common:
+  instance_addr: 127.0.0.1
+  path_prefix: /loki
+  replication_factor: 1
+  ring:
+    kvstore:
+      store: inmemory
+
+schema_config:
+  configs:
+    - from: 2025-01-01
+      store: tsdb
+      object_store: s3
+      schema: v13
+      index:
+        prefix: index_
+        period: 24h
+
+storage_config:
+  tsdb_shipper:
+    active_index_directory: /loki/index
+    cache_location: /loki/index_cache
+  aws:
+    s3: "s3://{{ monitoring__loki_bucket_region }}"
+    bucketnames: {{ monitoring__loki_bucket_name }}
+
+compactor:
+  working_directory: /loki/compactor
+  delete_request_store: s3
+  retention_enabled: true
+
+limits_config:
+  max_query_lookback: 30d
+  retention_period: 30d
+  max_global_streams_per_user: 100000

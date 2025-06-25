@@ -1,0 +1,56 @@
+---
+- name: Create Prometheus config directory
+  file:
+    path: "{{ monitoring__prometheus_configs_dir }}"
+    state: directory
+    owner: "{{ monitoring__os_user }}"
+    group: "{{ monitoring__os_user_group }}"
+    mode: "0755"
+
+- name: Create Prometheus rules directory
+  file:
+    path: "{{ monitoring__prometheus_rules_dir }}"
+    state: directory
+    owner: "{{ monitoring__os_user }}"
+    group: "{{ monitoring__os_user_group }}"
+    mode: "0755"
+
+- name: Create Prometheus config file
+  template:
+    src: "prometheus/prometheus.yml.j2"
+    dest: "{{ monitoring__prometheus_configs_dir }}/prometheus.yml"
+    owner: "{{ monitoring__os_user }}"
+    group: "{{ monitoring__os_user_group }}"
+    mode: "0644"
+  notify:
+    - Restart Prometheus
+
+- name: Create Prometheus rules config file
+  copy:
+    src: "files/prometheus/postgres.rules"
+    dest: "{{ monitoring__prometheus_rules_dir }}/postgres.rules"
+    owner: "{{ monitoring__os_user }}"
+    group: "{{ monitoring__os_user_group }}"
+    mode: "0644"
+  notify:
+    - Restart Prometheus
+
+- name: Create Prometheus config file for Nginx
+  template:
+    src: "nginx/conf/prometheus.conf.j2"
+    dest: "{{ monitoring__nginx_app_configs_dir }}/prometheus.conf"
+    owner: "{{ monitoring__os_user }}"
+    group: "{{ monitoring__os_user_group }}"
+    mode: "0644"
+  notify:
+    - Restart Nginx
+
+- name: Create Prometheus basic auth file
+  template:
+    src: "nginx/auth/prometheus.htpasswd.j2"
+    dest: "{{ monitoring__nginx_auth_configs_dir }}/prometheus.htpasswd"
+    owner: "{{ monitoring__os_user }}"
+    group: "{{ monitoring__os_user_group }}"
+    mode: "0644"
+  notify:
+    - Restart Nginx

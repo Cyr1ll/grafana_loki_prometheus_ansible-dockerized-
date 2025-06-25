@@ -1,0 +1,20 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: sqlexporter
+    static_configs:
+      - targets:
+          - sqlexporter:{{monitoring__sqlexporter_port }}
+
+  - job_name: telegraf
+    static_configs:
+      - targets:
+          - host.docker.internal:{{ monitoring__telegraf_port }}
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: 
+            - alertmanager:{{ monitoring__alertmanager_port }}

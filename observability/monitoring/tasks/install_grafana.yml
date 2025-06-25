@@ -1,0 +1,54 @@
+---
+- name: Create Grafana config directory
+  file:
+    path: "{{ monitoring__grafana_configs_dir }}"
+    state: directory
+    owner: "{{ monitoring__os_user }}"
+    group: "{{ monitoring__os_user_group }}"
+    mode: "0755"
+
+- name: Create Grafana dashboards directory
+  file:
+    path: "{{ monitoring__grafana_dashboards_dir }}"
+    state: directory
+    owner: "{{ monitoring__os_user }}"
+    group: "{{ monitoring__os_user_group }}"
+    mode: "0755"
+
+- name: Create Grafana datasources directory
+  file:
+    path: "{{ monitoring__grafana_datasources_dir }}"
+    state: directory
+    owner: "{{ monitoring__os_user }}"
+    group: "{{ monitoring__os_user_group }}"
+    mode: "0755"
+
+- name: Create Grafana config file for Nginx
+  template:
+    src: "nginx/conf/grafana.conf.j2"
+    dest: "{{ monitoring__nginx_app_configs_dir }}/grafana.conf"
+    owner: "{{ monitoring__os_user }}"
+    group: "{{ monitoring__os_user_group }}"
+    mode: "0644"
+  notify:
+    - Restart Nginx
+
+- name: Create Grafana dashboards
+  copy:
+    src: "grafana/dashboards/"
+    dest: "{{ monitoring__grafana_dashboards_dir }}/"
+    owner: "{{ monitoring__os_user }}"
+    group: "{{ monitoring__os_user_group }}"
+    mode: "0644"
+  notify:
+    - Restart Grafana
+
+- name: Create Grafana datasources file
+  template:
+    src: "grafana/datasources.yml.j2"
+    dest: "{{ monitoring__grafana_datasources_dir }}/datasources.yml"
+    owner: "{{ monitoring__os_user }}"
+    group: "{{ monitoring__os_user_group }}"
+    mode: "0644"
+  notify:
+    - Restart Grafana

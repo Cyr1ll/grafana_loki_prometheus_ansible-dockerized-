@@ -1,0 +1,13 @@
+---
+- hosts: production
+  become: true
+  vars:
+    monitoring__grafana_admin_user: ""
+    monitoring__grafana_admin_password: ""
+    monitoring__prometheus_basic_auth_username: ""
+    monitoring__prometheus_basic_auth_password: ""
+    monitoring__loki_basic_auth_username: ""
+    monitoring__loki_basic_auth_password: ""
+    monitoring__loki_bucket_name: ""
+  roles:
+    - monitoring

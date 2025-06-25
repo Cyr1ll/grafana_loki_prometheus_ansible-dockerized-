@@ -1,0 +1,39 @@
+---
+- name: Create OS user
+  import_tasks: create_user.yml
+
+- name: Create general config directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ monitoring__os_user }}"
+    group: "{{ monitoring__os_user_group }}"
+    mode: "0755"
+  with_items:
+    - "{{ monitoring__dir }}"
+    - "{{ monitoring__configs_dir }}"
+
+- name: Install Nginx
+  import_tasks: install_nginx.yml
+
+- name: Install Grafana
+  import_tasks: install_grafana.yml
+
+- name: Install Prometheus
+  import_tasks: install_prometheus.yml
+
+- name: Install Alertmanager
+  import_tasks: install_alertmanager.yml
+
+- name: Install Loki
+  import_tasks: install_loki.yml  
+
+- name: Create docker-compose.yml file
+  template:
+    src: "docker-compose.yml.j2"
+    dest: "{{ monitoring__dir }}/docker-compose.yml"
+    owner: "{{ monitoring__os_user }}"
+    group: "{{ monitoring__os_user_group }}"
+    mode: "0644"
+  notify:
+    - Start monitoring services

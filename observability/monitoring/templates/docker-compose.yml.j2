@@ -1,0 +1,77 @@
+networks:
+  monitoring-network:
+    name: monitoring-network
+
+volumes:
+  grafana-data:
+    name: grafana-data
+  prometheus-data:
+    name: prometheus-data
+  alertmanager-data:
+    name: alertmanager-data
+  loki-data:
+    name: loki-data
+
+services:
+  nginx:
+    image: {{ monitoring__nginx_image }}:{{ monitoring__nginx_image_tag }}
+    container_name: nginx
+    volumes:
+      - {{ monitoring__nginx_app_configs_dir }}:/etc/nginx/conf.d
+      - {{ monitoring__nginx_auth_configs_dir }}:/etc/nginx/auth
+    ports:
+      - {{ monitoring__grafana_port }}:3000
+      - {{ monitoring__loki_port }}:3100
+      - {{ monitoring__prometheus_port }}:9090
+    restart: unless-stopped
+    networks:
+      - monitoring-network
+  grafana:
+    image: {{ monitoring__grafana_image }}:{{ monitoring__grafana_image_tag }}
+    container_name: grafana
+    volumes:
+      - {{ monitoring__grafana_dashboards_dir }}:/etc/grafana/provisioning/dashboards
+      - {{ monitoring__grafana_datasources_dir }}:/etc/grafana/provisioning/datasources
+      - grafana-data:/var/lib/grafana
+    restart: unless-stopped
+    networks:
+      - monitoring-network
+    environment:
+      - GF_SECURITY_ADMIN_USER={{ monitoring__grafana_admin_user }}
+      - GF_SECURITY_ADMIN_PASSWORD={{ monitoring__grafana_admin_password }}
+  prometheus:
+    image: {{ monitoring__prometheus_image }}:{{ monitoring__prometheus_image_tag }}
+    container_name: prometheus
+    volumes:
+      - {{ monitoring__prometheus_configs_dir }}:/etc/prometheus
+      - prometheus-data:/prometheus
+    restart: unless-stopped
+    networks:
+      - monitoring-network
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.retention.time=180d'
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+  alertmanager:
+    image: {{ monitoring__alertmanager_image }}:{{ monitoring__alertmanager_image_tag }}
+    container_name: alertmanager
+    volumes:
+      - {{ monitoring__alertmanager_configs_dir }}:/etc/alertmanager
+      - alertmanager-data:/data
+    restart: unless-stopped
+    networks:
+      - monitoring-network
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+  loki:
+    image: {{ monitoring__loki_image }}:{{ monitoring__loki_image_tag }}
+    container_name: loki
+    volumes:
+      - {{ monitoring__loki_configs_dir }}:/etc/loki
+      - loki-data:/loki
+    restart: unless-stopped
+    networks:
+      - monitoring-network
+    command:
+      - '-config.file=/etc/loki/loki.yml'
