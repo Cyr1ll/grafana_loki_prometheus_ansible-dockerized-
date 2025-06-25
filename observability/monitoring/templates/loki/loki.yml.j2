@@ -26,8 +26,11 @@ storage_config:
     active_index_directory: /loki/index
     cache_location: /loki/index_cache
   aws:
-    s3: "s3://{{ monitoring__loki_bucket_region }}"
+    endpoint: http://minio:9000
+    s3: s3://{{ monitoring__minio_access_key }}:{{ monitoring__minio_secret_key }}@minio:9000/{{ monitoring__loki_bucket_name }}
     bucketnames: {{ monitoring__loki_bucket_name }}
+    s3forcepathstyle: true
+    insecure: true
 
 compactor:
   working_directory: /loki/compactor

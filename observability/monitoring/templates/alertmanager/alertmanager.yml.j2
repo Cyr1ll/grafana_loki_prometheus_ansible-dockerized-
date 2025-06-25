@@ -1,26 +1,19 @@
 global:
-  resolve_timeout: 1m
+  resolve_timeout: 5m
 
 route:
-  receiver: 'slack-notifications'
+  group_by: ['alertname']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 1h
+  receiver: 'grafana-webhook'
 
-{% raw %}
 receivers:
-- name: 'slack-notifications'
-  slack_configs:
-  - channel: '#prometheus-alerts'
-    send_resolved: false
-    title_link: '{{ define "slack.default.titlelink" }}{{ "" }}{{ end }}'
-    title: |-
-     [{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] {{ .CommonLabels.alertname }}
-    text: >-
-     {{ range .Alerts -}}
-     *Description:* {{ .Annotations.description }}
-
-     {{ if .Labels.severity }}*Severity:* `{{ .Labels.severity }}`{{ end }}
-
-     *Details:*
-       {{ range .Labels.SortedPairs }} • *{{ .Name }}:* `{{ .Value }}`
-       {{ end }}
-     {{ end }}
-{% endraw %}
+- name: 'grafana-webhook'
+  webhook_configs:
+  - url: 'http://grafana:{{ monitoring__grafana_port }}/api/alerting/notifications/webhook'
+    send_resolved: true
+    http_config:
+      basic_auth:
+        username: '{{ monitoring__grafana_admin_user }}'
+        password: '{{ monitoring__grafana_admin_password }}'

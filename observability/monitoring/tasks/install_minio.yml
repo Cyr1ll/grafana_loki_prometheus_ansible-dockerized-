@@ -1,0 +1,22 @@
+---
+- name: Wait for MinIO service to be ready
+  uri:
+    url: "http://localhost:9000/minio/health/live"
+    method: GET
+    status_code: 200
+  register: minio_health
+  until: minio_health.status == 200
+  retries: 30
+  delay: 10
+  delegate_to: localhost
+
+- name: Create MinIO bucket for Loki
+  uri:
+    url: "http://localhost:9000/{{ monitoring__loki_bucket_name }}"
+    method: PUT
+    user: "{{ monitoring__minio_access_key }}"
+    password: "{{ monitoring__minio_secret_key }}"
+    force_basic_auth: yes
+    status_code: [200, 409]  # 409 means bucket already exists
+  delegate_to: localhost
+  ignore_errors: yes

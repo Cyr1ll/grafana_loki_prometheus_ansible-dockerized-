@@ -25,16 +25,6 @@
   notify:
     - Restart Prometheus
 
-- name: Create Prometheus rules config file
-  copy:
-    src: "files/prometheus/postgres.rules"
-    dest: "{{ monitoring__prometheus_rules_dir }}/postgres.rules"
-    owner: "{{ monitoring__os_user }}"
-    group: "{{ monitoring__os_user_group }}"
-    mode: "0644"
-  notify:
-    - Restart Prometheus
-
 - name: Create Prometheus config file for Nginx
   template:
     src: "nginx/conf/prometheus.conf.j2"

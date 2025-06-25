@@ -37,3 +37,12 @@
     mode: "0644"
   notify:
     - Start monitoring services
+
+- name: Start monitoring services
+  docker_compose:
+    project_src: "{{ monitoring__dir }}"
+    state: present
+  become: yes
+
+- name: Install MinIO
+  import_tasks: install_minio.yml

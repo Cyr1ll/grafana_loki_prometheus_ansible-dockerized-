@@ -3,15 +3,23 @@ global:
   evaluation_interval: 15s
 
 scrape_configs:
-  - job_name: sqlexporter
+  # Мониторинг самого Prometheus
+  - job_name: 'prometheus'
     static_configs:
-      - targets:
-          - sqlexporter:{{monitoring__sqlexporter_port }}
+      - targets: ['localhost:{{ monitoring__prometheus_port }}']
 
-  - job_name: telegraf
+  # Мониторинг других сервисов стека
+  - job_name: 'grafana'
     static_configs:
-      - targets:
-          - host.docker.internal:{{ monitoring__telegraf_port }}
+      - targets: ['grafana:{{ monitoring__grafana_port }}']
+    
+  - job_name: 'loki'
+    static_configs:
+      - targets: ['loki:{{ monitoring__loki_port }}']
+    
+  - job_name: 'alertmanager'
+    static_configs:
+      - targets: ['alertmanager:{{ monitoring__alertmanager_port }}']
 
 alerting:
   alertmanagers:

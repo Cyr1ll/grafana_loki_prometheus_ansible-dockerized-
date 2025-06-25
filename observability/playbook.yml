@@ -2,12 +2,22 @@
 - hosts: production
   become: true
   vars:
-    monitoring__grafana_admin_user: ""
-    monitoring__grafana_admin_password: ""
-    monitoring__prometheus_basic_auth_username: ""
-    monitoring__prometheus_basic_auth_password: ""
-    monitoring__loki_basic_auth_username: ""
-    monitoring__loki_basic_auth_password: ""
-    monitoring__loki_bucket_name: ""
+    # Grafana settings
+    monitoring__grafana_admin_user: "admin"
+    monitoring__grafana_admin_password: "admin123"
+    
+    # Prometheus auth
+    monitoring__prometheus_basic_auth_username: "prometheus"
+    monitoring__prometheus_basic_auth_password: "prometheus123"
+    
+    # Loki auth
+    monitoring__loki_basic_auth_username: "loki"
+    monitoring__loki_basic_auth_password: "loki123"
+    
+    # MinIO settings (credentials)
+    monitoring__minio_access_key: "minioadmin"
+    monitoring__minio_secret_key: "minioadmin123"
+    monitoring__loki_bucket_name: "loki-logs"
+    
   roles:
     - monitoring

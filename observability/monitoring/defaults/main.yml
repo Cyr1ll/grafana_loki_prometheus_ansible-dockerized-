@@ -1,36 +1,33 @@
 ---
 monitoring__os_user: "monitoring"
 monitoring__os_user_group: "monitoring"
-
 monitoring__dir: "/opt/monitoring"
 monitoring__configs_dir: "{{ monitoring__dir }}/configs"
-
 monitoring__nginx_image: "nginx"
 monitoring__nginx_image_tag: "alpine"
 monitoring__nginx_configs_dir: "{{ monitoring__configs_dir }}/nginx"
 monitoring__nginx_app_configs_dir: "{{ monitoring__nginx_configs_dir }}/app"
 monitoring__nginx_auth_configs_dir: "{{ monitoring__nginx_configs_dir }}/auth"
-
 monitoring__grafana_image: "grafana/grafana-oss"
 monitoring__grafana_image_tag: "11.6.0"
 monitoring__grafana_port: 3000
 monitoring__grafana_configs_dir: "{{ monitoring__configs_dir }}/grafana"
 monitoring__grafana_dashboards_dir: "{{ monitoring__grafana_configs_dir }}/dashboards"
 monitoring__grafana_datasources_dir: "{{ monitoring__grafana_configs_dir }}/datasources"
-
 monitoring__prometheus_image: "prom/prometheus"
 monitoring__prometheus_image_tag: "v3.2.1"
 monitoring__prometheus_port: 9090
 monitoring__prometheus_configs_dir: "{{ monitoring__configs_dir }}/prometheus"
 monitoring__prometheus_rules_dir: "{{ monitoring__prometheus_configs_dir }}/rules"
-
 monitoring__alertmanager_image: "prom/alertmanager"
 monitoring__alertmanager_image_tag: "v0.28.1"
 monitoring__alertmanager_port: 9093
 monitoring__alertmanager_configs_dir: "{{ monitoring__configs_dir }}/alertmanager"
-
 monitoring__loki_image: "grafana/loki"
 monitoring__loki_image_tag: "3.4.2"
 monitoring__loki_port: 3100
 monitoring__loki_bucket_region: "eu-central-1"
 monitoring__loki_configs_dir: "{{ monitoring__configs_dir }}/loki"
+# MinIO settings
+monitoring__minio_image: "quay.io/minio/minio"
+monitoring__minio_image_tag: "latest"
