@@ -1,14 +1,13 @@
 ---
 - name: Wait for MinIO service to be ready
   uri:
-    url: "http://localhost:9000/minio/health/live"
+    url: "http://127.0.0.1:9000/minio/health/live"
     method: GET
     status_code: 200
   register: minio_health
   until: minio_health.status == 200
   retries: 30
-  delay: 10
-  delegate_to: localhost
+  delay: 1
 
 - name: Create MinIO bucket for Loki
   uri:

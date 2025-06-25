@@ -28,6 +28,16 @@
 - name: Install Loki
   import_tasks: install_loki.yml  
 
+- name: Create Grafana dashboards provisioning config
+  template:
+    src: "grafana/dashboards.yml.j2"
+    dest: "{{ monitoring__grafana_dashboards_dir }}/dashboards.yml"
+    owner: "{{ monitoring__os_user }}"
+    group: "{{ monitoring__os_user_group }}"
+    mode: "0644"
+  notify:
+    - Restart Grafana
+
 - name: Create docker-compose.yml file
   template:
     src: "docker-compose.yml.j2"
@@ -39,10 +49,8 @@
     - Start monitoring services
 
 - name: Start monitoring services
-  docker_compose:
+  community.docker.docker_compose_v2:
     project_src: "{{ monitoring__dir }}"
     state: present
+    remove_orphans: yes
   become: yes
-
-- name: Install MinIO
-  import_tasks: install_minio.yml

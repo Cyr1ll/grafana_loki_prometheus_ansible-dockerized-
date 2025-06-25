@@ -1,6 +1,7 @@
 ---
 monitoring__os_user: "monitoring"
 monitoring__os_user_group: "monitoring"
+monitoring__os_user_uid: "1001"
 monitoring__dir: "/opt/monitoring"
 monitoring__configs_dir: "{{ monitoring__dir }}/configs"
 monitoring__nginx_image: "nginx"

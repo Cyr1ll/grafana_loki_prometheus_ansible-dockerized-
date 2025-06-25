@@ -15,9 +15,9 @@
     monitoring__loki_basic_auth_password: "loki123"
     
     # MinIO settings (credentials)
-    monitoring__minio_access_key: "minioadmin"
-    monitoring__minio_secret_key: "minioadmin123"
-    monitoring__loki_bucket_name: "loki-logs"
+    monitoring__minio_access_key: "observability-stack-user"
+    monitoring__minio_secret_key: "SbpAjUtQevfZQJRkSxy5cGz8"
+    monitoring__loki_bucket_name: "observability-stack-bucket"
     
   roles:
     - monitoring
