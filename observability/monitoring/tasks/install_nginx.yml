@@ -1,0 +1,24 @@
+---
+- name: Create Nginx config directory
+  file:
+    path: "{{ monitoring__nginx_configs_dir }}"
+    state: directory
+    owner: "{{ monitoring__os_user }}"
+    group: "{{ monitoring__os_user_group }}"
+    mode: "0755"
+
+- name: Create Nginx app config directory
+  file:
+    path: "{{ monitoring__nginx_app_configs_dir }}"
+    state: directory
+    owner: "{{ monitoring__os_user }}"
+    group: "{{ monitoring__os_user_group }}"
+    mode: "0755"
+
+- name: Create Nginx auth config directory
+  file:
+    path: "{{ monitoring__nginx_auth_configs_dir }}"
+    state: directory
+    owner: "{{ monitoring__os_user }}"
+    group: "{{ monitoring__os_user_group }}"
+    mode: "0755"

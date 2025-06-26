@@ -1,0 +1,15 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  # Мониторинг самого Prometheus
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:{{ monitoring__prometheus_port }}']
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: 
+            - alertmanager:{{ monitoring__alertmanager_port }}

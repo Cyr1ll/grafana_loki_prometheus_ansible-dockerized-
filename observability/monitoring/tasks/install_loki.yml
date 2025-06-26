@@ -1,0 +1,38 @@
+---
+- name: Create Loki config directory
+  file:
+    path: "{{ monitoring__loki_configs_dir }}"
+    state: directory
+    owner: "{{ monitoring__os_user }}"
+    group: "{{ monitoring__os_user_group }}"
+    mode: "0755"
+
+- name: Create Loki config file
+  template:
+    src: "loki/loki.yml.j2"
+    dest: "{{ monitoring__loki_configs_dir }}/loki.yml"
+    owner: "{{ monitoring__os_user }}"
+    group: "{{ monitoring__os_user_group }}"
+    mode: "0644"
+  notify:
+    - Restart Loki
+
+- name: Create Loki config file for Nginx
+  template:
+    src: "nginx/conf/loki.conf.j2"
+    dest: "{{ monitoring__nginx_app_configs_dir }}/loki.conf"
+    owner: "{{ monitoring__os_user }}"
+    group: "{{ monitoring__os_user_group }}"
+    mode: "0644"
+  notify:
+    - Restart Nginx
+
+- name: Create Loki basic auth file
+  template:
+    src: "nginx/auth/loki.htpasswd.j2"
+    dest: "{{ monitoring__nginx_auth_configs_dir }}/loki.htpasswd"
+    owner: "{{ monitoring__os_user }}"
+    group: "{{ monitoring__os_user_group }}"
+    mode: "0644"
+  notify:
+    - Restart Nginx

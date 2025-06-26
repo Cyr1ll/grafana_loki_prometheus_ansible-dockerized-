@@ -1,0 +1,19 @@
+global:
+  resolve_timeout: 5m
+
+route:
+  group_by: ['alertname']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 1h
+  receiver: 'grafana-webhook'
+
+receivers:
+- name: 'grafana-webhook'
+  webhook_configs:
+  - url: 'http://grafana:{{ monitoring__grafana_port }}/api/alerting/notifications/webhook'
+    send_resolved: true
+    http_config:
+      basic_auth:
+        username: '{{ monitoring__grafana_admin_user }}'
+        password: '{{ monitoring__grafana_admin_password }}'

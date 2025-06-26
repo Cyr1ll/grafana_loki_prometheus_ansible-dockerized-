@@ -1,0 +1,18 @@
+---
+- name: Create Alertmanager config directory
+  file:
+    path: "{{ monitoring__alertmanager_configs_dir }}"
+    state: directory
+    owner: "{{ monitoring__os_user }}"
+    group: "{{ monitoring__os_user_group }}"
+    mode: "0755"
+
+- name: Create Alertmanager config file
+  template:
+    src: "alertmanager/alertmanager.yml.j2"
+    dest: "{{ monitoring__alertmanager_configs_dir }}/alertmanager.yml"
+    owner: "{{ monitoring__os_user }}"
+    group: "{{ monitoring__os_user_group }}"
+    mode: "0644"
+  notify:
+    - Restart Alertmanager
